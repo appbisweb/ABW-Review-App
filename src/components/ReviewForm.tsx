@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { actions } from 'astro:actions';
 import { PUBLIC_BRAND_NAME, PUBLIC_OWNER_NAME } from 'astro:env/client';
 import { Button } from '@/components/ui/button';
@@ -52,6 +52,7 @@ export function ReviewForm({ googleReviewUrl }: ReviewFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const reviewSectionRef = useRef<HTMLDivElement>(null);
 
   const toggleTopic = (topicId: TopicId) => {
     setSelectedTopics((prev) =>
@@ -85,6 +86,13 @@ export function ReviewForm({ googleReviewUrl }: ReviewFormProps) {
 
     if (data?.reviewText) {
       setReviewText(data.reviewText);
+      // Scroll zum Textfeld nach kurzer Verzögerung (damit DOM aktualisiert ist)
+      setTimeout(() => {
+        reviewSectionRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }, 100);
     }
   };
 
@@ -108,7 +116,10 @@ export function ReviewForm({ googleReviewUrl }: ReviewFormProps) {
     }
   };
 
-  const openGoogleReview = () => {
+  const copyAndOpenGoogle = async () => {
+    // Erst kopieren
+    await handleCopy();
+    // Dann Google öffnen
     window.open(googleReviewUrl, '_blank', 'noopener,noreferrer');
   };
 
@@ -224,7 +235,7 @@ export function ReviewForm({ googleReviewUrl }: ReviewFormProps) {
 
         {/* Generated Review */}
         {reviewText && (
-          <div className='space-y-3 pt-2'>
+          <div ref={reviewSectionRef} className='space-y-3 pt-2'>
             <div className='flex items-center justify-between'>
               <Label htmlFor='review' className='text-sm font-medium'>
                 Dein Bewertungstext
@@ -289,9 +300,8 @@ export function ReviewForm({ googleReviewUrl }: ReviewFormProps) {
               </Button>
 
               <Button
-                variant='secondary'
-                onClick={openGoogleReview}
-                className='flex-1 h-11'>
+                onClick={copyAndOpenGoogle}
+                className='flex-1 h-11 text-base font-semibold'>
                 <span className='flex items-center gap-2'>
                   <svg
                     className='h-4 w-4'
@@ -302,7 +312,7 @@ export function ReviewForm({ googleReviewUrl }: ReviewFormProps) {
                     <path d='M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z' />
                     <path d='M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z' />
                   </svg>
-                  Bei Google bewerten
+                  Jetzt bei Google bewerten
                 </span>
               </Button>
             </div>
