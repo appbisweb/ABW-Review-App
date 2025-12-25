@@ -1,9 +1,17 @@
 import { useState } from 'react';
 import { actions } from 'astro:actions';
+import { PUBLIC_BRAND_NAME, PUBLIC_OWNER_NAME } from 'astro:env/client';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
 import {
   Card,
   CardContent,
@@ -22,6 +30,16 @@ const TOPICS = [
 
 type TopicId = (typeof TOPICS)[number]['id'];
 
+const STYLES = [
+  { id: 'authentisch', label: 'Authentisch (Standard)' },
+  { id: 'locker', label: 'Locker & kurzweilig' },
+  { id: 'sachlich', label: 'Sachlich & klar' },
+  { id: 'begeistert', label: 'Begeistert & positiv' },
+  { id: 'kurz', label: 'Sehr kurz (1–2 Sätze)' }
+] as const;
+
+type StyleId = (typeof STYLES)[number]['id'];
+
 interface ReviewFormProps {
   googleReviewUrl: string;
 }
@@ -29,6 +47,7 @@ interface ReviewFormProps {
 export function ReviewForm({ googleReviewUrl }: ReviewFormProps) {
   const [selectedTopics, setSelectedTopics] = useState<TopicId[]>([]);
   const [hint, setHint] = useState('');
+  const [style, setStyle] = useState<StyleId>('authentisch');
   const [reviewText, setReviewText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +72,8 @@ export function ReviewForm({ googleReviewUrl }: ReviewFormProps) {
 
     const { data, error: actionError } = await actions.generateReview({
       topics: selectedTopics,
-      hint: hint.trim() || undefined
+      hint: hint.trim() || undefined,
+      style
     });
 
     setIsLoading(false);
@@ -94,20 +114,40 @@ export function ReviewForm({ googleReviewUrl }: ReviewFormProps) {
 
   const charCount = reviewText.length;
   const isOverLimit = charCount > 500;
+  const ownerName = PUBLIC_OWNER_NAME || 'Jan';
+  const brandName = PUBLIC_BRAND_NAME || 'App bis Web';
 
   return (
     <Card className='w-full max-w-xl mx-auto shadow-lg'>
       <CardHeader className='space-y-1'>
         <CardTitle className='text-2xl font-bold tracking-tight'>
-          Bewertung für App bis Web
+          Bewertung für {ownerName}
         </CardTitle>
         <CardDescription className='text-base'>
-          Wähle die Themen aus, zu denen du uns bewerten möchtest. Wir erstellen
-          dir einen Textvorschlag, den du anpassen kannst.
+          Wähle die Themen aus, zu denen du {ownerName} ({ownerName} von{' '}
+          {brandName}) bewerten möchtest. Wir erstellen dir einen Textvorschlag,
+          den du anpassen kannst.
         </CardDescription>
       </CardHeader>
 
       <CardContent className='space-y-6'>
+        {/* Style */}
+        <div className='space-y-2'>
+          <Label className='text-sm font-medium'>Sprachstil</Label>
+          <Select value={style} onValueChange={(v) => setStyle(v as StyleId)}>
+            <SelectTrigger className='w-full'>
+              <SelectValue placeholder='Stil auswählen' />
+            </SelectTrigger>
+            <SelectContent>
+              {STYLES.map((s) => (
+                <SelectItem key={s.id} value={s.id}>
+                  {s.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         {/* Topic Selection */}
         <div className='space-y-3'>
           <Label className='text-sm font-medium'>Themen auswählen</Label>
@@ -115,7 +155,7 @@ export function ReviewForm({ googleReviewUrl }: ReviewFormProps) {
             {TOPICS.map((topic) => (
               <label
                 key={topic.id}
-                className='flex items-center gap-3 p-3 rounded-lg border border-input bg-background hover:bg-accent/50 cursor-pointer transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5'>
+                className='flex items-center gap-3 p-3 rounded-lg border border-input bg-background hover:bg-accent/50 cursor-pointer transition-colors has-checked:border-primary has-checked:bg-primary/5'>
                 <Checkbox
                   checked={selectedTopics.includes(topic.id)}
                   onCheckedChange={() => toggleTopic(topic.id)}

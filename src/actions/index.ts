@@ -1,6 +1,6 @@
 import { ActionError, defineAction } from 'astro:actions';
 import { z } from 'astro/zod';
-import { generateReviewText, type Topic } from '@/server/openai';
+import { generateReviewText, type ReviewStyle, type Topic } from '@/server/openai';
 import { checkRateLimit } from '@/server/rate-limit';
 
 const topicEnum = z.enum([
@@ -11,6 +11,8 @@ const topicEnum = z.enum([
   'entwicklung'
 ]);
 
+const styleEnum = z.enum(['authentisch', 'kurz', 'sachlich', 'begeistert', 'locker']);
+
 export const server = {
   generateReview: defineAction({
     input: z.object({
@@ -20,7 +22,8 @@ export const server = {
       hint: z
         .string()
         .max(80, 'Das Stichwort darf maximal 80 Zeichen haben')
-        .optional()
+        .optional(),
+      style: styleEnum.optional()
     }),
     handler: async (input, context) => {
       // Rate Limiting: IP-Adresse aus Request Headers
@@ -43,7 +46,8 @@ export const server = {
 
       const reviewText = await generateReviewText({
         topics: input.topics as Topic[],
-        hint: input.hint
+        hint: input.hint,
+        style: input.style as ReviewStyle | undefined
       });
 
       return {
