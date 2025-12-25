@@ -259,7 +259,7 @@ export function ReviewForm({ googleReviewUrl }: ReviewFormProps) {
             />
 
             {/* Action Buttons */}
-            <div className='flex gap-3'>
+            <div className='flex gap-3 flex-wrap'>
               <Button
                 variant='outline'
                 onClick={handleCopy}
