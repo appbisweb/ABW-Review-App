@@ -1,0 +1,73 @@
+# ABW Review App - Cursor Rules
+
+## Sprache
+- Alle Antworten, Kommentare und Dokumentation auf **Deutsch**
+- Code-Variablen und Funktionsnamen auf Englisch (Standard)
+
+## Tech Stack
+- **Framework**: Astro 5.x mit Server-Side Rendering (SSR)
+- **UI Framework**: React 19 mit TypeScript
+- **Styling**: Tailwind CSS v4 + shadcn/ui (Maia Style, Pink Theme, Gray Base)
+- **Deployment**: Vercel (Node Adapter)
+- **API**: Astro Server Actions (`astro:actions`)
+
+## Architektur-Prinzipien
+
+### Server Actions bevorzugen
+- Für alle Backend-Logik **Astro Server Actions** verwenden (`src/actions/index.ts`)
+- KEINE separaten API-Routen erstellen, wenn Server Actions ausreichen
+- Validierung mit Zod (`astro/zod`)
+
+### Sicherheit
+- **NIEMALS** API-Keys oder Secrets im Client-Code
+- Alle Secrets über Vercel Environment Variables
+- Prefixe beachten: `PUBLIC_*` für Client-sichtbare Variablen
+- Server-Secrets ohne Prefix oder mit `SECRET_*`
+
+### Komponenten
+- shadcn/ui Komponenten aus `@/components/ui/*` verwenden
+- Eigene Komponenten in `@/components/`
+- `client:load` für interaktive React-Komponenten in Astro
+
+### Imports
+- Immer `@/` Alias für `src/` Imports verwenden
+- Beispiel: `import { Button } from '@/components/ui/button'`
+- Env-Variablen: `import { SECRET_OPENAI } from 'astro:env/server'`
+- Env-Variablen: `import { PUBLIC_GOOGLE_PROFILE } from 'astro:env/client'`
+
+## Dateistruktur
+```
+src/
+├── actions/       # Astro Server Actions
+├── components/    # React Komponenten
+│   └── ui/        # shadcn/ui Komponenten
+├── lib/           # Utilities (cn helper etc.)
+├── pages/         # Astro Pages
+├── server/        # Server-only Code (OpenAI etc.)
+└── styles/        # Global CSS
+```
+
+## Coding Standards
+- TypeScript strict mode
+- Funktionale Komponenten mit Hooks
+- Keine `any` Types - immer typisieren
+- Error Handling mit try/catch und User-freundlichen Fehlermeldungen
+
+## OpenAI Integration
+- Model: `gpt-4o-mini` (schnell, kosteneffizient für kurze Texte)
+- Alle OpenAI-Calls nur serverseitig (`src/server/openai.ts`)
+- Review-Texte: max. 500 Zeichen, Du-Ton, variiert
+
+## Environment Variables (Pflicht in astro.config.mjs definiert)
+```env
+SECRET_OPENAI=sk-...           # OpenAI API Key (server-only, Pflicht)
+PUBLIC_GOOGLE_PROFILE=...      # Google Profil/Review Link (client-sichtbar, Pflicht)
+```
+
+## UI Design
+- **Style**: Maia (shadcn/ui)
+- **Theme**: Pink (Primary Color)
+- **Base Color**: Gray
+- **Font**: JetBrains Mono
+- **Radius**: Small (0.375rem)
+- **Icon Library**: Lucide
