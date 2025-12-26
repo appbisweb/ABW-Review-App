@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { actions } from 'astro:actions';
 import { PUBLIC_BRAND_NAME, PUBLIC_OWNER_NAME } from 'astro:env/client';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,7 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card';
+import { Share2 } from 'lucide-react';
 
 const TOPICS = [
   { id: 'website', label: 'Website' },
@@ -50,6 +51,102 @@ type CustomerTypeId = (typeof CUSTOMER_TYPES)[number]['id'];
 
 interface ReviewFormProps {
   googleReviewUrl: string;
+  initialTopics?: string;
+  initialStyle?: string;
+  initialCustomerType?: string;
+  initialHint?: string;
+}
+
+/**
+ * Parse URL params for form pre-configuration
+ * URL format: ?topics=website,beratung&style=locker&type=company&hint=schnell
+ */
+function parseUrlParams(): Partial<{
+  topics: TopicId[];
+  style: StyleId;
+  customerType: CustomerTypeId;
+  hint: string;
+}> {
+  if (typeof window === 'undefined') return {};
+
+  const params = new URLSearchParams(window.location.search);
+  const result: Partial<{
+    topics: TopicId[];
+    style: StyleId;
+    customerType: CustomerTypeId;
+    hint: string;
+  }> = {};
+
+  // Parse topics (comma-separated)
+  const topicsParam = params.get('topics');
+  if (topicsParam) {
+    const validTopicIds = TOPICS.map((t) => t.id);
+    const parsedTopics = topicsParam
+      .split(',')
+      .map((t) => t.trim().toLowerCase())
+      .filter((t) => validTopicIds.includes(t as TopicId)) as TopicId[];
+    if (parsedTopics.length > 0) {
+      result.topics = parsedTopics;
+    }
+  }
+
+  // Parse style
+  const styleParam = params.get('style');
+  if (styleParam) {
+    const validStyleIds = STYLES.map((s) => s.id);
+    if (validStyleIds.includes(styleParam as StyleId)) {
+      result.style = styleParam as StyleId;
+    }
+  }
+
+  // Parse customer type
+  const typeParam = params.get('type');
+  if (typeParam) {
+    const validTypes = CUSTOMER_TYPES.map((ct) => ct.id);
+    if (validTypes.includes(typeParam as CustomerTypeId)) {
+      result.customerType = typeParam as CustomerTypeId;
+    }
+  }
+
+  // Parse hint
+  const hintParam = params.get('hint');
+  if (hintParam) {
+    result.hint = hintParam.slice(0, 80); // Max 80 chars
+  }
+
+  return result;
+}
+
+/**
+ * Build shareable URL from current form state
+ */
+function buildShareUrl(
+  topics: TopicId[],
+  style: StyleId,
+  customerType: CustomerTypeId,
+  hint: string
+): string {
+  if (typeof window === 'undefined') return '';
+
+  const params = new URLSearchParams();
+
+  if (topics.length > 0) {
+    params.set('topics', topics.join(','));
+  }
+  if (style !== 'authentisch') {
+    params.set('style', style);
+  }
+  if (customerType !== 'individual') {
+    params.set('type', customerType);
+  }
+  if (hint.trim()) {
+    params.set('hint', hint.trim());
+  }
+
+  const queryString = params.toString();
+  const baseUrl = window.location.origin + window.location.pathname;
+
+  return queryString ? `${baseUrl}?${queryString}` : baseUrl;
 }
 
 export function ReviewForm({ googleReviewUrl }: ReviewFormProps) {
@@ -62,7 +159,38 @@ export function ReviewForm({ googleReviewUrl }: ReviewFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
   const reviewSectionRef = useRef<HTMLDivElement>(null);
+
+  // Initialize form from URL params on mount
+  useEffect(() => {
+    const urlParams = parseUrlParams();
+    if (urlParams.topics) setSelectedTopics(urlParams.topics);
+    if (urlParams.style) setStyle(urlParams.style);
+    if (urlParams.customerType) setCustomerType(urlParams.customerType);
+    if (urlParams.hint) setHint(urlParams.hint);
+  }, []);
+
+  // Share current configuration
+  const handleShare = useCallback(async () => {
+    const shareUrl = buildShareUrl(selectedTopics, style, customerType, hint);
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    } catch {
+      // Fallback
+      const textarea = document.createElement('textarea');
+      textarea.value = shareUrl;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    }
+  }, [selectedTopics, style, customerType, hint]);
 
   const toggleTopic = (topicId: TopicId) => {
     setSelectedTopics((prev) =>
@@ -349,6 +477,15 @@ export function ReviewForm({ googleReviewUrl }: ReviewFormProps) {
           </div>
         )}
       </CardContent>
+
+      {/* Share Button - subtle, below the card */}
+      <button
+        onClick={handleShare}
+        className='mx-auto flex items-center gap-1.5 py-3 text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors'
+        title='Link zum Teilen kopieren'>
+        <Share2 className='h-3.5 w-3.5' />
+        <span>{linkCopied ? 'Link kopiert!' : ' '}</span>
+      </button>
     </Card>
   );
 }
