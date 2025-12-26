@@ -10,10 +10,10 @@
 import { AI_PROVIDER } from 'astro:env/server';
 import { generateWithOpenAI } from './openai';
 import { generateWithAnthropic } from './anthropic';
-import type { GenerateReviewParams, Topic, ReviewStyle, AIProvider } from './types';
+import type { GenerateReviewParams, Topic, ReviewStyle, AIProvider, CustomerType } from './types';
 
 // Re-export types for convenience
-export type { Topic, ReviewStyle, GenerateReviewParams, AIProvider };
+export type { Topic, ReviewStyle, GenerateReviewParams, AIProvider, CustomerType };
 export { TOPIC_LABELS } from './types';
 
 /**

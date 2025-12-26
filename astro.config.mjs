@@ -55,7 +55,7 @@ export default defineConfig({
         context: 'server',
         access: 'public',
         optional: true,
-        default: 'claude-3-5-sonnet-latest',
+        default: 'claude-3-haiku-20240307',
       }),
       // Client-visible: Google Profile URL (required)
       PUBLIC_GOOGLE_PROFILE: envField.string({

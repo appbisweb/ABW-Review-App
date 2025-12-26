@@ -3,6 +3,21 @@ import { ANTHROPIC_MODEL, SECRET_ANTHROPIC } from 'astro:env/server';
 import type { GenerateReviewParams } from './types';
 import { buildSystemPrompt, buildUserPrompt, buildRetryPrompt } from './prompts';
 
+/**
+ * Strip surrounding quotation marks from generated text
+ */
+function stripQuotes(text: string): string {
+  // Remove surrounding double quotes
+  if (text.startsWith('"') && text.endsWith('"')) {
+    return text.slice(1, -1);
+  }
+  // Remove surrounding German quotes
+  if (text.startsWith('„') && text.endsWith('"')) {
+    return text.slice(1, -1);
+  }
+  return text;
+}
+
 // Singleton Anthropic client
 let anthropicClient: Anthropic | null = null;
 
@@ -68,7 +83,7 @@ export async function generateWithAnthropic(
   const model = ANTHROPIC_MODEL;
   const variationNonce = crypto.randomUUID().slice(0, 8);
 
-  const systemPrompt = buildSystemPrompt(variationNonce);
+  const systemPrompt = buildSystemPrompt(variationNonce, params.customerType);
   const userPrompt = buildUserPrompt(params);
 
   try {
@@ -82,6 +97,9 @@ export async function generateWithAnthropic(
     // Extract text from response
     const textBlock = response.content.find((block) => block.type === 'text');
     let reviewText = textBlock?.type === 'text' ? textBlock.text.trim() : '';
+
+    // Strip surrounding quotation marks if present
+    reviewText = stripQuotes(reviewText);
 
     // Retry if text exceeds character limit
     if (reviewText.length > 500) {
@@ -99,9 +117,10 @@ export async function generateWithAnthropic(
       const retryTextBlock = retryResponse.content.find(
         (block) => block.type === 'text'
       );
-      reviewText =
+      reviewText = stripQuotes(
         (retryTextBlock?.type === 'text' ? retryTextBlock.text.trim() : '') ||
-        reviewText.slice(0, 500);
+        reviewText.slice(0, 500)
+      );
     }
 
     return reviewText;

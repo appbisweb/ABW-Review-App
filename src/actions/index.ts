@@ -1,6 +1,11 @@
 import { ActionError, defineAction } from 'astro:actions';
 import { z } from 'astro/zod';
-import { generateReviewText, type ReviewStyle, type Topic } from '@/server/llm';
+import {
+  generateReviewText,
+  type ReviewStyle,
+  type Topic,
+  type CustomerType
+} from '@/server/llm';
 import { checkRateLimit } from '@/server/rate-limit';
 
 const topicEnum = z.enum([
@@ -13,6 +18,8 @@ const topicEnum = z.enum([
 
 const styleEnum = z.enum(['authentisch', 'kurz', 'sachlich', 'begeistert', 'locker']);
 
+const customerTypeEnum = z.enum(['individual', 'company']);
+
 export const server = {
   generateReview: defineAction({
     input: z.object({
@@ -23,7 +30,8 @@ export const server = {
         .string()
         .max(80, 'Das Stichwort darf maximal 80 Zeichen haben')
         .optional(),
-      style: styleEnum.optional()
+      style: styleEnum.optional(),
+      customerType: customerTypeEnum.optional()
     }),
     handler: async (input, context) => {
       // Rate Limiting: Extract IP address from request headers
@@ -47,7 +55,8 @@ export const server = {
       const reviewText = await generateReviewText({
         topics: input.topics as Topic[],
         hint: input.hint,
-        style: input.style as ReviewStyle | undefined
+        style: input.style as ReviewStyle | undefined,
+        customerType: input.customerType as CustomerType | undefined
       });
 
       return {

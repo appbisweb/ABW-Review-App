@@ -66,7 +66,7 @@ Copy `.env.example` to `.env` and configure:
 |----------|---------|-------------|
 | `AI_PROVIDER` | `openai` | `openai` or `anthropic` |
 | `OPENAI_MODEL` | `gpt-4o-mini` | OpenAI model to use |
-| `ANTHROPIC_MODEL` | `claude-3-5-sonnet-latest` | Anthropic model to use |
+| `ANTHROPIC_MODEL` | `claude-3-haiku-20240307` | Anthropic model to use |
 
 ### Brand Customization (Optional)
 
@@ -81,9 +81,10 @@ Copy `.env.example` to `.env` and configure:
 ## Scripts
 
 ```bash
-npm run dev      # Start dev server
-npm run build    # Production build
-npm run preview  # Preview production build
+npm run dev        # Start dev server
+npm run build      # Production build
+npm run test       # Run unit tests (Vitest)
+npm run test:e2e   # Run E2E tests (Playwright)
 ```
 
 ## Deployment
@@ -124,7 +125,7 @@ OPENAI_MODEL=gpt-4o-mini
 # For Anthropic
 AI_PROVIDER=anthropic
 SECRET_ANTHROPIC=sk-ant-...
-ANTHROPIC_MODEL=claude-3-5-sonnet-latest
+ANTHROPIC_MODEL=claude-3-haiku-20240307
 ```
 
 Only the API key for the selected provider is required.

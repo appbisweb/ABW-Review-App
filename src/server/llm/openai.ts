@@ -3,6 +3,21 @@ import { OPENAI_MODEL, SECRET_OPENAI } from 'astro:env/server';
 import type { GenerateReviewParams } from './types';
 import { buildSystemPrompt, buildUserPrompt, buildRetryPrompt } from './prompts';
 
+/**
+ * Strip surrounding quotation marks from generated text
+ */
+function stripQuotes(text: string): string {
+  // Remove surrounding double quotes
+  if (text.startsWith('"') && text.endsWith('"')) {
+    return text.slice(1, -1);
+  }
+  // Remove surrounding German quotes
+  if (text.startsWith('„') && text.endsWith('"')) {
+    return text.slice(1, -1);
+  }
+  return text;
+}
+
 // Singleton OpenAI client
 let openaiClient: OpenAI | null = null;
 
@@ -68,7 +83,7 @@ export async function generateWithOpenAI(
   const model = OPENAI_MODEL;
   const variationNonce = crypto.randomUUID().slice(0, 8);
 
-  const systemPrompt = buildSystemPrompt(variationNonce);
+  const systemPrompt = buildSystemPrompt(variationNonce, params.customerType);
   const userPrompt = buildUserPrompt(params);
 
   try {
@@ -84,6 +99,9 @@ export async function generateWithOpenAI(
 
     let reviewText = response.choices[0]?.message?.content?.trim() || '';
 
+    // Strip surrounding quotation marks if present
+    reviewText = stripQuotes(reviewText);
+
     // Retry if text exceeds character limit
     if (reviewText.length > 500) {
       const retryResponse = await client.chat.completions.create({
@@ -97,9 +115,10 @@ export async function generateWithOpenAI(
         max_tokens: 150,
         temperature: 0.7
       });
-      reviewText =
+      reviewText = stripQuotes(
         retryResponse.choices[0]?.message?.content?.trim() ||
-        reviewText.slice(0, 500);
+        reviewText.slice(0, 500)
+      );
     }
 
     return reviewText;

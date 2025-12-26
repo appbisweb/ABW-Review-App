@@ -22,10 +22,14 @@ export type ReviewStyle =
   | 'begeistert'
   | 'locker';
 
+// Customer perspective: individual writes "ich/meine", company writes "wir/unsere"
+export type CustomerType = 'individual' | 'company';
+
 export interface GenerateReviewParams {
   topics: Topic[];
   hint?: string;
   style?: ReviewStyle;
+  customerType?: CustomerType;
 }
 
 export type AIProvider = 'openai' | 'anthropic';

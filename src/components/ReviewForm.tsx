@@ -40,6 +40,14 @@ const STYLES = [
 
 type StyleId = (typeof STYLES)[number]['id'];
 
+// Customer type: solo business (ich/meine) vs company (wir/unsere)
+const CUSTOMER_TYPES = [
+  { id: 'individual', label: 'Einzelunternehmen (ich)' },
+  { id: 'company', label: 'Firma/Unternehmen (wir)' }
+] as const;
+
+type CustomerTypeId = (typeof CUSTOMER_TYPES)[number]['id'];
+
 interface ReviewFormProps {
   googleReviewUrl: string;
 }
@@ -48,6 +56,8 @@ export function ReviewForm({ googleReviewUrl }: ReviewFormProps) {
   const [selectedTopics, setSelectedTopics] = useState<TopicId[]>([]);
   const [hint, setHint] = useState('');
   const [style, setStyle] = useState<StyleId>('authentisch');
+  const [customerType, setCustomerType] =
+    useState<CustomerTypeId>('individual');
   const [reviewText, setReviewText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,7 +84,8 @@ export function ReviewForm({ googleReviewUrl }: ReviewFormProps) {
     const { data, error: actionError } = await actions.generateReview({
       topics: selectedTopics,
       hint: hint.trim() || undefined,
-      style
+      style,
+      customerType
     });
 
     setIsLoading(false);
@@ -153,6 +164,25 @@ export function ReviewForm({ googleReviewUrl }: ReviewFormProps) {
               {STYLES.map((s) => (
                 <SelectItem key={s.id} value={s.id}>
                   {s.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Customer Type */}
+        <div className='space-y-2'>
+          <Label className='text-sm font-medium'>Kundenperspektive</Label>
+          <Select
+            value={customerType}
+            onValueChange={(v) => setCustomerType(v as CustomerTypeId)}>
+            <SelectTrigger className='w-full'>
+              <SelectValue placeholder='Perspektive wählen' />
+            </SelectTrigger>
+            <SelectContent>
+              {CUSTOMER_TYPES.map((ct) => (
+                <SelectItem key={ct.id} value={ct.id}>
+                  {ct.label}
                 </SelectItem>
               ))}
             </SelectContent>
