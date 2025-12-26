@@ -60,6 +60,106 @@ test.describe('Review Generation Flow', () => {
       await expect(labels.nth(i)).toBeVisible();
     }
   });
+
+  test('share button exists', async ({ page }) => {
+    // Share button is subtle, below the card
+    const shareButton = page.locator('button').filter({ has: page.locator('svg') }).last();
+    await expect(shareButton).toBeVisible();
+  });
+});
+
+// URL Parameter Pre-configuration Tests
+test.describe('URL Parameter Pre-configuration', () => {
+  test('pre-fills topics from URL params', async ({ page }) => {
+    await page.goto('/?topics=website,beratung');
+
+    // Wait for React hydration
+    await page.waitForTimeout(500);
+
+    // Check that the checkboxes are selected (Radix uses data-state)
+    // Use exact: true to avoid matching "Website-Optimierung"
+    const websiteCheckbox = page.getByRole('checkbox', { name: 'Website', exact: true });
+    const beratungCheckbox = page.getByRole('checkbox', { name: 'Beratung', exact: true });
+
+    await expect(websiteCheckbox).toHaveAttribute('data-state', 'checked');
+    await expect(beratungCheckbox).toHaveAttribute('data-state', 'checked');
+  });
+
+  test('pre-fills style from URL params', async ({ page }) => {
+    await page.goto('/?style=locker');
+
+    // Wait for React hydration
+    await page.waitForTimeout(500);
+
+    // The style dropdown should show "Locker & kurzweilig"
+    const styleDropdown = page.getByRole('combobox').first();
+    await expect(styleDropdown).toContainText(/locker/i);
+  });
+
+  test('pre-fills customer type from URL params', async ({ page }) => {
+    await page.goto('/?type=company');
+
+    // Wait for React hydration
+    await page.waitForTimeout(500);
+
+    // The customer type dropdown should show "Firma/Unternehmen"
+    const customerDropdown = page.getByRole('combobox').nth(1);
+    await expect(customerDropdown).toContainText(/firma/i);
+  });
+
+  test('pre-fills hint from URL params', async ({ page }) => {
+    await page.goto('/?hint=Tolles%20Projekt');
+
+    // Wait for React hydration
+    await page.waitForTimeout(500);
+
+    const hintInput = page.getByRole('textbox');
+    await expect(hintInput).toHaveValue('Tolles Projekt');
+  });
+
+  test('pre-fills multiple params at once', async ({ page }) => {
+    await page.goto('/?topics=website,webapp&style=begeistert&type=company&hint=Super%20Team');
+
+    // Wait for React hydration
+    await page.waitForTimeout(500);
+
+    // Check topics - use exact matching
+    const websiteCheckbox = page.getByRole('checkbox', { name: 'Website', exact: true });
+    const webappCheckbox = page.getByRole('checkbox', { name: 'Web-App', exact: true });
+    await expect(websiteCheckbox).toHaveAttribute('data-state', 'checked');
+    await expect(webappCheckbox).toHaveAttribute('data-state', 'checked');
+
+    // Check style
+    const styleDropdown = page.getByRole('combobox').first();
+    await expect(styleDropdown).toContainText(/begeistert/i);
+
+    // Check customer type
+    const customerDropdown = page.getByRole('combobox').nth(1);
+    await expect(customerDropdown).toContainText(/firma/i);
+
+    // Check hint
+    const hintInput = page.getByRole('textbox');
+    await expect(hintInput).toHaveValue('Super Team');
+  });
+
+  test('ignores invalid URL params', async ({ page }) => {
+    await page.goto('/?topics=invalid,website&style=fake&type=wrong');
+
+    // Wait for React hydration
+    await page.waitForTimeout(500);
+
+    // Only valid topic should be checked
+    const websiteCheckbox = page.getByRole('checkbox', { name: 'Website', exact: true });
+    await expect(websiteCheckbox).toHaveAttribute('data-state', 'checked');
+
+    // Style should be default (authentisch)
+    const styleDropdown = page.getByRole('combobox').first();
+    await expect(styleDropdown).toContainText(/authentisch/i);
+
+    // Customer type should be default (Einzelunternehmen)
+    const customerDropdown = page.getByRole('combobox').nth(1);
+    await expect(customerDropdown).toContainText(/einzelunternehmen/i);
+  });
 });
 
 // API-dependent tests - skip in CI and when no server is manually started

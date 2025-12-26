@@ -66,7 +66,7 @@ Copy `.env.example` to `.env` and configure:
 |----------|---------|-------------|
 | `AI_PROVIDER` | `openai` | `openai` or `anthropic` |
 | `OPENAI_MODEL` | `gpt-4o-mini` | OpenAI model to use |
-| `ANTHROPIC_MODEL` | `claude-3-haiku-20240307` | Anthropic model to use |
+| `ANTHROPIC_MODEL` | `claude-sonnet-4-20250514` | Anthropic model (Sonnet 4 recommended) |
 
 ### Brand Customization (Optional)
 
@@ -122,13 +122,32 @@ AI_PROVIDER=openai
 SECRET_OPENAI=sk-...
 OPENAI_MODEL=gpt-4o-mini
 
-# For Anthropic
+# For Anthropic (Sonnet 4 recommended for best quality)
 AI_PROVIDER=anthropic
 SECRET_ANTHROPIC=sk-ant-...
-ANTHROPIC_MODEL=claude-3-haiku-20240307
+ANTHROPIC_MODEL=claude-sonnet-4-20250514
 ```
 
 Only the API key for the selected provider is required.
+
+## Form Pre-configuration via URL
+
+You can pre-configure the form via URL parameters and share the link with customers:
+
+```
+https://your-domain.com/?topics=website,beratung&style=locker&type=company&hint=Tolles%20Projekt
+```
+
+### Available Parameters
+
+| Parameter | Values | Description |
+|-----------|--------|-------------|
+| `topics` | `website,beratung,webapp,optimierung,entwicklung` | Comma-separated topics |
+| `style` | `authentisch,locker,sachlich,begeistert,kurz` | Review style |
+| `type` | `individual,company` | Customer perspective (ich/wir) |
+| `hint` | Any text (max 80 chars) | Pre-filled keyword hint |
+
+A subtle "Share" button below the form generates the URL from current settings.
 
 ## Troubleshooting
 

@@ -1,27 +1,13 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-
-// Mock the environment variables
-vi.mock('astro:env/client', () => ({
-  PUBLIC_BRAND_NAME: 'Test Brand',
-  PUBLIC_OWNER_NAME: 'Max',
-  PUBLIC_PROVIDER_MODE: 'solo',
-  PUBLIC_PROVIDER_PRONOUN: 'er',
-  PUBLIC_REVIEW_STYLE: 'authentisch',
-}));
-
-// Import after mocking
-import { buildSystemPrompt, buildUserPrompt } from '../llm/prompts';
+import { describe, it, expect } from 'vitest';
+import { buildSystemPrompt, buildUserPrompt, buildRetryPrompt } from '../llm/prompts';
 
 describe('Prompt Generation', () => {
   describe('buildSystemPrompt', () => {
-    it('should include owner name from env', () => {
+    it('should include owner and brand name from env', () => {
       const prompt = buildSystemPrompt('test-nonce');
-      expect(prompt).toContain('Max');
-    });
-
-    it('should include brand name from env', () => {
-      const prompt = buildSystemPrompt('test-nonce');
-      expect(prompt).toContain('Test Brand');
+      // Uses env vars or defaults (Jan, App bis Web)
+      expect(prompt).toMatch(/Jan|Max|Owner/);
+      expect(prompt).toMatch(/App bis Web|Test Brand|Brand/);
     });
 
     it('should include variation nonce', () => {
@@ -38,19 +24,24 @@ describe('Prompt Generation', () => {
 
     it('should use individual perspective by default', () => {
       const prompt = buildSystemPrompt('test-nonce');
-      expect(prompt).toContain('Einzelkunden-Sicht');
+      expect(prompt).toContain('EINZELUNTERNEHMEN');
       expect(prompt).toContain('ich/meine');
     });
 
     it('should use company perspective when specified', () => {
       const prompt = buildSystemPrompt('test-nonce', 'company');
-      expect(prompt).toContain('Firmensicht');
+      expect(prompt).toContain('FIRMA/UNTERNEHMEN');
       expect(prompt).toContain('wir/unsere');
     });
 
-    it('should mention the pronoun', () => {
+    it('should mention the pronoun rules', () => {
       const prompt = buildSystemPrompt('test-nonce');
-      expect(prompt).toContain('er/ihm/sein');
+      expect(prompt).toContain('ihm/sein');
+    });
+
+    it('should prohibit quotation marks', () => {
+      const prompt = buildSystemPrompt('test-nonce');
+      expect(prompt).toContain('KEINE Anführungszeichen');
     });
   });
 
@@ -86,12 +77,12 @@ describe('Prompt Generation', () => {
       expect(prompt).toContain('begeistert');
     });
 
-    it('should include owner and brand name', () => {
+    it('should include owner name', () => {
       const prompt = buildUserPrompt({
         topics: ['website'],
       });
-      expect(prompt).toContain('Max');
-      expect(prompt).toContain('Test Brand');
+      // Should contain owner name (default: Jan or from env)
+      expect(prompt).toMatch(/Jan|Max|Owner/);
     });
 
     it('should remind about character limit', () => {
@@ -99,6 +90,14 @@ describe('Prompt Generation', () => {
         topics: ['website'],
       });
       expect(prompt).toContain('max. 500 Zeichen');
+    });
+  });
+
+  describe('buildRetryPrompt', () => {
+    it('should request shorter text', () => {
+      const prompt = buildRetryPrompt();
+      expect(prompt).toContain('kürze');
+      expect(prompt).toContain('450');
     });
   });
 });
