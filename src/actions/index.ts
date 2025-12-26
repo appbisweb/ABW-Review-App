@@ -1,6 +1,6 @@
 import { ActionError, defineAction } from 'astro:actions';
 import { z } from 'astro/zod';
-import { generateReviewText, type ReviewStyle, type Topic } from '@/server/openai';
+import { generateReviewText, type ReviewStyle, type Topic } from '@/server/llm';
 import { checkRateLimit } from '@/server/rate-limit';
 
 const topicEnum = z.enum([
@@ -26,7 +26,7 @@ export const server = {
       style: styleEnum.optional()
     }),
     handler: async (input, context) => {
-      // Rate Limiting: IP-Adresse aus Request Headers
+      // Rate Limiting: Extract IP address from request headers
       const clientIP =
         context.request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
         context.request.headers.get('x-real-ip') ||

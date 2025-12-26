@@ -1,74 +1,158 @@
 # ABW Review App
 
-Eine kleine, schnelle Landingpage, die Kund:innen hilft, **Google-Bewertungen** für **Jan (App bis Web)** zu schreiben.  
-Kernidee: Themen auswählen → Review-Text (≤ 500 Zeichen) generieren → Text anpassen → bei Google posten.
+A modern landing page that helps customers write **Google reviews** using AI-generated text suggestions. Built with Astro, React, and Tailwind CSS.
 
 ## Features
 
-- **Mehrfachauswahl** der Themen: Website, Beratung, Web-App, Website-Optimierung, Entwicklung
-- **Sprachstil wählbar** (UI): authentisch / locker / sachlich / begeistert / kurz
-- **Einzelunternehmer-Logik**: Der Text spricht über **Jan** in **3. Person Singular** (er/ihm/sein), **kein „Team“**, keine Firma
-- **≤ 500 Zeichen** serverseitig abgesichert
-- **Astro Server Actions** statt API-Routen
-- **Rate Limit** (Basis-Schutz): 5 Generierungen / Stunde / IP
-- **EU-konform**: Keine Google Fonts Requests – JetBrains Mono wird via **Astro Experimental Fonts API** lokal gecached/ausgeliefert
+- **Multi-topic selection**: Website, Consulting, Web App, Website Optimization, Development
+- **Customizable tone**: authentic, casual, factual, enthusiastic, brief
+- **Solo entrepreneur mode**: Reviews reference the owner by name (3rd person singular)
+- **Character limit**: Server-enforced ≤500 characters
+- **Dual AI providers**: Choose between OpenAI and Anthropic
+- **Rate limiting**: Basic protection (5 generations/hour/IP)
+- **Privacy-first**: No external font requests – JetBrains Mono served locally via Astro's experimental Fonts API
+- **Server Actions**: No separate API routes needed
 
-## Setup
+## Tech Stack
 
-### 1) Install
+- [Astro](https://astro.build) 5.x with SSR
+- [React](https://react.dev) 19
+- [Tailwind CSS](https://tailwindcss.com) v4 + [shadcn/ui](https://ui.shadcn.com)
+- [Vercel](https://vercel.com) for deployment
+- OpenAI / Anthropic for AI text generation
+
+## Prerequisites
+
+- Node.js 18+ 
+- npm or pnpm
+- OpenAI API key **or** Anthropic API key
+- A Google Business Profile with a review link
+
+## Quick Start
 
 ```bash
+# 1. Clone the repository
+git clone https://github.com/janluther/abw-review-app.git
+cd abw-review-app
+
+# 2. Install dependencies
 npm install
-```
 
-### 2) Environment Variables (Pflicht)
+# 3. Set up environment variables
+cp .env.example .env
+# Edit .env with your actual values
 
-Diese Variablen sind in `astro.config.mjs` als Pflicht/Defaults hinterlegt:
-
-```env
-# Pflicht
-SECRET_OPENAI=sk-...
-PUBLIC_GOOGLE_PROFILE=https://... (dein Google-Profil/Review-Link)
-
-# Optional (Defaults greifen, wenn nicht gesetzt)
-OPENAI_MODEL=gpt-4o-mini
-PUBLIC_BRAND_NAME=App bis Web
-PUBLIC_OWNER_NAME=Jan
-PUBLIC_PROVIDER_MODE=solo
-PUBLIC_PROVIDER_PRONOUN=er
-PUBLIC_REVIEW_STYLE=authentisch
-```
-
-**Wichtig:** `SECRET_OPENAI` ist server-only. Niemals `PUBLIC_` davor setzen.
-
-### 3) Dev / Build
-
-```bash
+# 4. Start development server
 npm run dev
 ```
 
-Dev läuft auf `http://localhost:4321`.
+The app runs at `http://localhost:4321`.
+
+## Environment Variables
+
+Copy `.env.example` to `.env` and configure:
+
+### Required
+
+| Variable | Description |
+|----------|-------------|
+| `PUBLIC_GOOGLE_PROFILE` | Your Google Business review link |
+| `SECRET_OPENAI` | OpenAI API key (if using OpenAI) |
+| `SECRET_ANTHROPIC` | Anthropic API key (if using Anthropic) |
+
+### AI Provider Selection
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `AI_PROVIDER` | `openai` | `openai` or `anthropic` |
+| `OPENAI_MODEL` | `gpt-4o-mini` | OpenAI model to use |
+| `ANTHROPIC_MODEL` | `claude-3-5-sonnet-latest` | Anthropic model to use |
+
+### Brand Customization (Optional)
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PUBLIC_BRAND_NAME` | `App bis Web` | Brand name shown in UI |
+| `PUBLIC_OWNER_NAME` | `Jan` | Owner name for personalized reviews |
+| `PUBLIC_PROVIDER_MODE` | `solo` | `solo` or `team` |
+| `PUBLIC_PROVIDER_PRONOUN` | `er` | German pronoun (er/sie) |
+| `PUBLIC_REVIEW_STYLE` | `authentisch` | Default review style |
+
+## Scripts
 
 ```bash
-npm run build
+npm run dev      # Start dev server
+npm run build    # Production build
+npm run preview  # Preview production build
 ```
 
-## OpenAI Billing / 429 “quota”
+## Deployment
 
-Wenn du Fehler wie „You exceeded your current quota“ siehst, liegt das oft an **Billing/Guthaben**, nicht am Modellpreis.  
-Auch mit hinterlegter Karte kann `credit balance` noch `0.00` sein. Dann musst du Guthaben hinzufügen (Prepaid) oder dein Billing aktivieren.
+### Vercel (Recommended)
 
-## Fonts (EU / Privacy)
+1. Push to GitHub
+2. Import project in [Vercel](https://vercel.com)
+3. Add environment variables in Vercel dashboard
+4. Deploy
 
-Wir verwenden Astros **Experimental Fonts API** (ab `astro@5.7.0`), damit JetBrains Mono lokal ausgeliefert wird statt über Google.  
-Siehe Astro-Doku: `https://docs.astro.build/en/reference/experimental-flags/fonts/`
+The app uses `@astrojs/vercel` adapter and is configured for SSR.
 
-## shadcn/ui: Warum `create --preset ... --template vite` bei Astro nicht passt
+## Project Structure
 
-Der Befehl `shadcn create --template vite` ist für **neue** Projekte (Vite-Template) gedacht. In einem bestehenden **Astro**-Projekt solltest du:
+```
+src/
+├── actions/       # Astro Server Actions
+├── components/    # React components
+│   └── ui/        # shadcn/ui components
+├── lib/           # Utilities (cn helper)
+├── pages/         # Astro pages
+├── server/        # Server-only code
+│   └── llm/       # AI provider abstraction
+└── styles/        # Global CSS
+```
 
-- `npx shadcn@latest init` (Projekt initialisieren)
-- `npx shadcn@latest add ...` (Komponenten hinzufügen)
+## Switching AI Providers
 
-Der Preset-Builder unter `https://ui.shadcn.com/create?...` ist super zum Zusammenklicken, aber **`--template vite`** kollidiert mit Astro.  
-Wenn du exakt diesen Look willst, setzen wir die relevanten Werte in `components.json` + Theme/CSS um (Style: Maia, Base: Gray, Theme: Pink).
+Set `AI_PROVIDER` in your `.env`:
+
+```env
+# For OpenAI
+AI_PROVIDER=openai
+SECRET_OPENAI=sk-...
+OPENAI_MODEL=gpt-4o-mini
+
+# For Anthropic
+AI_PROVIDER=anthropic
+SECRET_ANTHROPIC=sk-ant-...
+ANTHROPIC_MODEL=claude-3-5-sonnet-latest
+```
+
+Only the API key for the selected provider is required.
+
+## Troubleshooting
+
+### OpenAI 429 "quota exceeded"
+
+This usually means your OpenAI account needs billing setup or credit balance:
+1. Go to [OpenAI Billing](https://platform.openai.com/account/billing)
+2. Add payment method or purchase credits
+3. Even with a card on file, you may need prepaid credits
+
+### Fonts not loading
+
+The app uses Astro's experimental Fonts API. Ensure you're on `astro@5.7.0+`.
+
+## License
+
+MIT
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
+
+---
+
+Made with ♥ by [App bis Web](https://appbisweb.de)

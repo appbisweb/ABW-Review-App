@@ -14,7 +14,7 @@ export default defineConfig({
   adapter: vercel(),
   integrations: [react()],
   experimental: {
-    // Astro Experimental Fonts API: Fonts werden lokal gecached/ausgeliefert (Privacy + Performance)
+    // Astro Experimental Fonts API: Fonts are cached/served locally (Privacy + Performance)
     // Docs: https://docs.astro.build/en/reference/experimental-flags/fonts/
     fonts: [
       {
@@ -26,24 +26,43 @@ export default defineConfig({
   },
   env: {
     schema: {
-      // Server-only: OpenAI API Key (Pflicht)
+      // AI Provider selection: "openai" or "anthropic"
+      AI_PROVIDER: envField.string({
+        context: 'server',
+        access: 'public',
+        optional: true,
+        default: 'openai',
+      }),
+      // OpenAI configuration (required if AI_PROVIDER=openai)
       SECRET_OPENAI: envField.string({
         context: 'server',
         access: 'secret',
+        optional: true,
       }),
-      // Optional: Modell für OpenAI (Default ist günstig/schnell)
       OPENAI_MODEL: envField.string({
         context: 'server',
         access: 'public',
         optional: true,
         default: 'gpt-4o-mini',
       }),
-      // Client-sichtbar: Google Profil URL (Pflicht)
+      // Anthropic configuration (required if AI_PROVIDER=anthropic)
+      SECRET_ANTHROPIC: envField.string({
+        context: 'server',
+        access: 'secret',
+        optional: true,
+      }),
+      ANTHROPIC_MODEL: envField.string({
+        context: 'server',
+        access: 'public',
+        optional: true,
+        default: 'claude-3-5-sonnet-latest',
+      }),
+      // Client-visible: Google Profile URL (required)
       PUBLIC_GOOGLE_PROFILE: envField.string({
         context: 'client',
         access: 'public',
       }),
-      // Public Konfiguration: Brand/Name & Sprachstil
+      // Public configuration: Brand/Name & language style
       PUBLIC_BRAND_NAME: envField.string({
         context: 'client',
         access: 'public',

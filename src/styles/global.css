@@ -4,7 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  /* via Astro Experimental Fonts API (lokal gebündelt, keine Google-Fonts) */
+  /* via Astro Experimental Fonts API (locally bundled, no Google Fonts) */
   --font-sans: var(--font-jetbrains-mono);
   --font-mono: var(--font-jetbrains-mono);
   --radius-sm: calc(var(--radius) - 4px);

@@ -86,7 +86,7 @@ export function ReviewForm({ googleReviewUrl }: ReviewFormProps) {
 
     if (data?.reviewText) {
       setReviewText(data.reviewText);
-      // Scroll zum Textfeld nach kurzer Verzögerung (damit DOM aktualisiert ist)
+      // Scroll to text field after short delay (to allow DOM update)
       setTimeout(() => {
         reviewSectionRef.current?.scrollIntoView({
           behavior: 'smooth',
@@ -117,9 +117,9 @@ export function ReviewForm({ googleReviewUrl }: ReviewFormProps) {
   };
 
   const copyAndOpenGoogle = async () => {
-    // Erst kopieren
+    // First copy to clipboard
     await handleCopy();
-    // Dann Google öffnen
+    // Then open Google
     window.open(googleReviewUrl, '_blank', 'noopener,noreferrer');
   };
 

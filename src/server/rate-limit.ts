@@ -1,5 +1,5 @@
-// Einfaches In-Memory Rate Limiting
-// Für Production: Redis oder ähnliches verwenden
+// Simple in-memory rate limiting
+// For production: consider using Redis or similar
 
 interface RateLimitEntry {
   count: number;
@@ -8,11 +8,11 @@ interface RateLimitEntry {
 
 const rateLimitStore = new Map<string, RateLimitEntry>();
 
-// Konfiguration
-const WINDOW_MS = 60 * 60 * 1000; // 1 Stunde
-const MAX_REQUESTS = 5; // Max 5 Anfragen pro Stunde pro IP
+// Configuration
+const WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const MAX_REQUESTS = 5; // Max 5 requests per hour per IP
 
-// Cleanup alte Einträge (alle 5 Minuten)
+// Cleanup expired entries (every 5 minutes)
 setInterval(() => {
   const now = Date.now();
   for (const [key, entry] of rateLimitStore.entries()) {
@@ -32,7 +32,7 @@ export function checkRateLimit(identifier: string): RateLimitResult {
   const now = Date.now();
   const entry = rateLimitStore.get(identifier);
 
-  // Kein Eintrag oder abgelaufen -> neues Fenster
+  // No entry or expired -> new window
   if (!entry || entry.resetAt < now) {
     const resetAt = now + WINDOW_MS;
     rateLimitStore.set(identifier, { count: 1, resetAt });
@@ -43,7 +43,7 @@ export function checkRateLimit(identifier: string): RateLimitResult {
     };
   }
 
-  // Limit erreicht?
+  // Limit reached?
   if (entry.count >= MAX_REQUESTS) {
     return {
       allowed: false,
@@ -52,7 +52,7 @@ export function checkRateLimit(identifier: string): RateLimitResult {
     };
   }
 
-  // Anfrage zählen
+  // Count request
   entry.count++;
   return {
     allowed: true,
