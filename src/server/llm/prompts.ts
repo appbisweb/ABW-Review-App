@@ -49,7 +49,7 @@ WEITERE REGELN:
 - KEINE Anführungszeichen um den Text! Nur den reinen Bewertungstext ausgeben.
 - MAXIMAL 500 Zeichen (inkl. Leerzeichen) - kritisch!
 - 1-3 kurze, natürliche Sätze
-- KEINE Emojis, KEINE generischen Floskeln ("sehr zu empfehlen", "top Service", "nur weiterempfehlen")
+- KEINE Emojis, KEINE generischen Floskeln ("sehr zu empfehlen", "top Service", "nur weiterempfehlen", "gerne wieder")
 - KEINE erfundenen Fakten (Preise, Zeitangaben, Projektnamen)
 - Klingt wie eine echte Person, NICHT wie Marketing oder KI
 - Der Anbieter ist eine EINZELPERSON - vermeide "Team", "Firma", "sie" (Plural)
