@@ -89,7 +89,7 @@ describe('Prompt Generation', () => {
       const prompt = buildUserPrompt({
         topics: ['website'],
       });
-      expect(prompt).toContain('max. 500 Zeichen');
+      expect(prompt).toContain('500 Zeichen');
     });
   });
 

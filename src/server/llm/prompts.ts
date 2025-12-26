@@ -26,27 +26,37 @@ export function buildSystemPrompt(
   // Customer perspective based on type (Einzelunternehmen vs Firma/Unternehmen)
   const customerPerspective =
     customerType === 'company'
-      ? 'Der Kunde ist eine FIRMA/UNTERNEHMEN mit mehreren Mitarbeitern. Schreibe aus Firmensicht (wir/unsere/uns). Beispiel: "Jan hat unsere Website umgesetzt" oder "Wir haben Jan beauftragt".'
-      : 'Der Kunde ist ein EINZELUNTERNEHMEN (eine Person). Schreibe aus Einzelunternehmer-Sicht (ich/meine/mir). Beispiel: "Jan hat meine Website erstellt" oder "Ich habe Jan kontaktiert".';
+      ? 'Der Kunde ist eine FIRMA/UNTERNEHMEN. Schreibe aus Firmensicht (wir/unsere/uns).'
+      : 'Der Kunde ist ein EINZELUNTERNEHMEN (eine Person). Schreibe aus Ich-Perspektive (ich/meine/mir).';
 
-  return `Du bist ein Assistent, der authentische, individuelle Google-Bewertungen auf Deutsch schreibt.
+  return `Du bist ein Experte für authentische, menschlich klingende Google-Bewertungen auf Deutsch.
 
-WICHTIGE REGELN:
-- KEINE Anführungszeichen um den Text! Gib nur den reinen Bewertungstext aus.
-- Schreibe im lockeren Du-Ton, als wäre der Kunde ein zufriedener Nutzer
-- MAXIMAL 500 Zeichen (inkl. Leerzeichen) - das ist kritisch!
-- 1-3 natürliche Sätze
-- KEINE Emojis
-- KEINE generischen Floskeln wie "sehr zu empfehlen" oder "top Service"
-- KEINE erfundenen harten Fakten (keine konkreten Preise, Zeiten, Namen)
-- Variiere Satzstruktur und Perspektive stark
-- Die genannten Themen müssen erkennbar einfließen
-- Klingt wie eine echte Person, nicht wie Marketing-Copy
-- Der Anbieter ist eine EINZELPERSON (kein Team, keine Firma). Vermeide Wörter wie "Team", "Firma" sowie Pronomen im Plural ("wir" als Anbieter) und das Anbieter-Pronomen "sie".
-- Nenne den Anbieter beim Namen: ${ownerName}. Du darfst auch ${brandName} erwähnen, oder in Kombination "${ownerName} von ${brandName}".
-- Schreibe über den Anbieter in der 3. Person Singular: ${providerPronoun}/ihm/sein.
+KRITISCH - VARIATION DER SATZANFÄNGE:
+Beginne NIEMALS mit "[Name] hat..." - das ist das häufigste KI-Muster!
+Wähle ZUFÄLLIG einen dieser Einstiegsstile basierend auf der Variation-ID und passe die Einstiege zusätzlich an, versteh diese Stile als grobe Vorschläge:
+1. Mit dem Ergebnis/Resultat beginnen: "Die neue Website läuft super...", "Das Ergebnis überzeugt..."
+2. Mit der eigenen Situation starten: "Nach langer Suche...", "Als ich eine Website brauchte..."
+3. Mit einem Gefühl/Eindruck: "Richtig zufrieden!", "Super Zusammenarbeit..."
+4. Mit einer Empfehlung: "Kann ich nur empfehlen.", "Wer eine Website braucht..."
+5. Mit dem Prozess: "Von der ersten Beratung bis zum Launch...", "Die Umsetzung lief..."
+6. Mit einer konkreten Stärke: "Besonders die Kommunikation...", "Was mich überzeugt hat..."
+7. Mit Zeitbezug: "Seit dem Relaunch...", "Nach ein paar Wochen..."
+8. Direkt und kurz: "Top!", "Alles bestens.", "Genau das was ich wollte."
+
+Der Name "${ownerName}" oder "${brandName}" darf vorkommen, aber NICHT am Satzanfang und NICHT in jedem Review.
+
+WEITERE REGELN:
+- KEINE Anführungszeichen um den Text! Nur den reinen Bewertungstext ausgeben.
+- MAXIMAL 500 Zeichen (inkl. Leerzeichen) - kritisch!
+- 1-3 kurze, natürliche Sätze
+- KEINE Emojis, KEINE generischen Floskeln ("sehr zu empfehlen", "top Service", "nur weiterempfehlen")
+- KEINE erfundenen Fakten (Preise, Zeitangaben, Projektnamen)
+- Klingt wie eine echte Person, NICHT wie Marketing oder KI
+- Der Anbieter ist eine EINZELPERSON - vermeide "Team", "Firma", "sie" (Plural)
+- Wenn der Name genannt wird: 3. Person Singular (${providerPronoun}/ihm/sein)
 - ${customerPerspective}
-- Variation-ID für diesen Text: ${variationNonce} (nutze diese zur internen Variation, erwähne sie nicht)`;
+
+Variation-ID: ${variationNonce} (nutze die letzten Ziffern um den Einstiegsstil zu wählen, erwähne sie nie)`;
 }
 
 /**
@@ -59,11 +69,12 @@ export function buildUserPrompt(params: GenerateReviewParams): string {
     params.style || ((PUBLIC_REVIEW_STYLE as ReviewStyle) ?? 'authentisch');
   const topicList = params.topics.map((t) => TOPIC_LABELS[t]).join(', ');
 
-  return `Schreibe eine Google-Bewertung für ${ownerName}${brandName ? ` (${ownerName} von ${brandName})` : ''}.
+  return `Schreibe eine Google-Bewertung. Anbieter: ${ownerName} von ${brandName}.
 Stil: ${reviewStyle}.
-Themen: ${topicList}${params.hint ? `\n\nZusätzlicher Kontext vom Kunden: ${params.hint}` : ''}
+Themen: ${topicList}${params.hint ? `\nKontext: ${params.hint}` : ''}
 
-Denk daran: max. 500 Zeichen, authentisch, variiert, Du-Ton.`;
+WICHTIG: Beginne NICHT mit "${ownerName} hat..." - wähle einen anderen Einstieg!
+Max. 500 Zeichen. Klingt menschlich, nicht wie KI.`;
 }
 
 /**
